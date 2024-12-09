@@ -15,11 +15,22 @@ ds = load_dataset("lighteval/MATH", "all")
 print(ds)
 train = ds["train"]
 print(train)
-print(train[0])
+# print(train[0])
 first_sample = train[0]
 
 for key, value in first_sample.items():
     print(f"{key}: {value}")
     print("="*100)
 
-# tokenizer.apply_chat_template
+first_problem = first_sample["problem"]
+first_solution = first_sample["solution"]
+
+chat = [
+    {"role": "user", "content": first_problem},
+    {"role": "assistant", "content": first_solution},
+]
+
+
+
+templated = tokenizer.apply_chat_template(chat, tokenize=False)
+print(templated)

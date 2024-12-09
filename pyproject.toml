@@ -6,5 +6,6 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "datasets>=3.1.0",
+    "peft>=0.14.0",
 ]
 
