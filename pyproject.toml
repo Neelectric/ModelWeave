@@ -3,5 +3,8 @@ name = "modelweave"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.8"
-dependencies = []
+requires-python = ">=3.9"
+dependencies = [
+    "datasets>=3.1.0",
+]
+
