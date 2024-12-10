@@ -5,7 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+    "bitsandbytes>=0.45.0",
     "datasets>=3.1.0",
     "peft>=0.14.0",
+    "pip>=24.3.1",
 ]
 

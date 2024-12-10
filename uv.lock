@@ -157,6 +157,20 @@ wheels = [
 ]
 
 [[package]]
+name = "bitsandbytes"
+version = "0.45.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "torch" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/99/9a/f41d252bf8b0bc5969b4dce1274cd04b7ddc541de1060dd27eca680bc1b2/bitsandbytes-0.45.0-py3-none-manylinux_2_24_x86_64.whl", hash = "sha256:0f0323de1ff1fdf8383e79bdad1283516a4c05a6fd2b44a363bf4e059422305b", size = 69084267 },
+    { url = "https://files.pythonhosted.org/packages/1e/90/a2bbb9b5f997b9c9aa9c15ee4adf553ee71053bb942f89fd48d920a1aa9d/bitsandbytes-0.45.0-py3-none-win_amd64.whl", hash = "sha256:ebbf96e0ecb466716a65ecdeaef3fa1983575447b9ab66b74e5211892507c6ff", size = 68520043 },
+]
+
+[[package]]
 name = "certifi"
 version = "2024.8.30"
 source = { registry = "https://pypi.org/simple" }
@@ -511,14 +525,18 @@ name = "modelweave"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "bitsandbytes" },
     { name = "datasets" },
     { name = "peft" },
+    { name = "pip" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "bitsandbytes", specifier = ">=0.45.0" },
     { name = "datasets", specifier = ">=3.1.0" },
     { name = "peft", specifier = ">=0.14.0" },
+    { name = "pip", specifier = ">=24.3.1" },
 ]
 
 [[package]]
@@ -901,6 +919,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/21/33/fb0c31eaa8162c01e9250b21aa65d46a5339f17a818a97c68391db2ff44b/peft-0.14.0.tar.gz", hash = "sha256:546d69af7b42f5ef715a3d3261ed818bc917ae6055e5d7e187ed3f2c76ad72dc", size = 411902 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/05/e58e3aaa36544d30a917814e336fc65a746f708e5874945e92999bc22fa3/peft-0.14.0-py3-none-any.whl", hash = "sha256:2f04f3a870c3baf30f15e7dcaa5dd70d3e54cfdd146d3c6c187735d3ae0a0700", size = 374831 },
+]
+
+[[package]]
+name = "pip"
+version = "24.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f4/b1/b422acd212ad7eedddaf7981eee6e5de085154ff726459cf2da7c5a184c1/pip-24.3.1.tar.gz", hash = "sha256:ebcb60557f2aefabc2e0f918751cd24ea0d56d8ec5445fe1807f1d2109660b99", size = 1931073 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/7d/500c9ad20238fcfcb4cb9243eede163594d7020ce87bd9610c9e02771876/pip-24.3.1-py3-none-any.whl", hash = "sha256:3790624780082365f47549d032f3770eeb2b1e8bd1f7b2e02dace1afa361b4ed", size = 1822182 },
 ]
 
 [[package]]
