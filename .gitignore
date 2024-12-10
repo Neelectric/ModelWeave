@@ -13,3 +13,4 @@ open-instruct/
 open-instruct
 wandb/
 sfttrainer_outputdir/
+OLMo_2_cache/
