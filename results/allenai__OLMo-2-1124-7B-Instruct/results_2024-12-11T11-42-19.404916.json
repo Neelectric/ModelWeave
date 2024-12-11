@@ -1,0 +1,476 @@
+{
+  "results": {
+    "hendrycks_math": {
+      "exact_match,none": 0.0976,
+      "exact_match_stderr,none": 0.00415589699932801,
+      "alias": "hendrycks_math"
+    },
+    "hendrycks_math_algebra": {
+      "alias": " - hendrycks_math_algebra",
+      "exact_match,none": 0.09351305812973884,
+      "exact_match_stderr,none": 0.008454239788142814
+    },
+    "hendrycks_math_counting_and_prob": {
+      "alias": " - hendrycks_math_counting_and_prob",
+      "exact_match,none": 0.10126582278481013,
+      "exact_match_stderr,none": 0.013871278974256909
+    },
+    "hendrycks_math_geometry": {
+      "alias": " - hendrycks_math_geometry",
+      "exact_match,none": 0.10647181628392484,
+      "exact_match_stderr,none": 0.014107742067271658
+    },
+    "hendrycks_math_intermediate_algebra": {
+      "alias": " - hendrycks_math_intermediate_algebra",
+      "exact_match,none": 0.05094130675526024,
+      "exact_match_stderr,none": 0.007321133187865441
+    },
+    "hendrycks_math_num_theory": {
+      "alias": " - hendrycks_math_num_theory",
+      "exact_match,none": 0.07777777777777778,
+      "exact_match_stderr,none": 0.011535891805294775
+    },
+    "hendrycks_math_prealgebra": {
+      "alias": " - hendrycks_math_prealgebra",
+      "exact_match,none": 0.18140068886337543,
+      "exact_match_stderr,none": 0.013064582240936635
+    },
+    "hendrycks_math_precalc": {
+      "alias": " - hendrycks_math_precalc",
+      "exact_match,none": 0.05860805860805861,
+      "exact_match_stderr,none": 0.010061567725278787
+    }
+  },
+  "groups": {
+    "hendrycks_math": {
+      "exact_match,none": 0.0976,
+      "exact_match_stderr,none": 0.00415589699932801,
+      "alias": "hendrycks_math"
+    }
+  },
+  "group_subtasks": {
+    "hendrycks_math": [
+      "hendrycks_math_algebra",
+      "hendrycks_math_counting_and_prob",
+      "hendrycks_math_geometry",
+      "hendrycks_math_intermediate_algebra",
+      "hendrycks_math_num_theory",
+      "hendrycks_math_prealgebra",
+      "hendrycks_math_precalc"
+    ]
+  },
+  "configs": {
+    "hendrycks_math_algebra": {
+      "task": "hendrycks_math_algebra",
+      "tag": [
+        "math_word_problems"
+      ],
+      "dataset_path": "EleutherAI/hendrycks_math",
+      "dataset_name": "algebra",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "training_split": "train",
+      "test_split": "test",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc: dict) -> dict:\n        out_doc = {\n            \"problem\": doc[\"problem\"],\n            \"solution\": doc[\"solution\"],\n            \"answer\": remove_boxed(last_boxed_only_string(doc[\"solution\"])),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n",
+      "doc_to_text": "Problem: {{problem}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "process_results": "def process_results(doc: dict, results: List[str]) -> Dict[str, int]:\n    retval = 0\n    indices = [pos for pos, char in enumerate(results[0]) if char == \"$\"]\n    if len(indices) <= 1:\n        answer = results[0]\n    else:\n        answer = results[0][indices[0] + 1 : indices[-1]]\n\n    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc[\"solution\"]))):\n        retval = 1\n\n    results = {\n        \"exact_match\": retval,\n    }\n    return results\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 4,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "Problem:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "hendrycks_math_counting_and_prob": {
+      "task": "hendrycks_math_counting_and_prob",
+      "tag": [
+        "math_word_problems"
+      ],
+      "dataset_path": "EleutherAI/hendrycks_math",
+      "dataset_name": "counting_and_probability",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "training_split": "train",
+      "test_split": "test",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc: dict) -> dict:\n        out_doc = {\n            \"problem\": doc[\"problem\"],\n            \"solution\": doc[\"solution\"],\n            \"answer\": remove_boxed(last_boxed_only_string(doc[\"solution\"])),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n",
+      "doc_to_text": "Problem: {{problem}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "process_results": "def process_results(doc: dict, results: List[str]) -> Dict[str, int]:\n    retval = 0\n    indices = [pos for pos, char in enumerate(results[0]) if char == \"$\"]\n    if len(indices) <= 1:\n        answer = results[0]\n    else:\n        answer = results[0][indices[0] + 1 : indices[-1]]\n\n    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc[\"solution\"]))):\n        retval = 1\n\n    results = {\n        \"exact_match\": retval,\n    }\n    return results\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 4,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "Problem:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "hendrycks_math_geometry": {
+      "task": "hendrycks_math_geometry",
+      "tag": [
+        "math_word_problems"
+      ],
+      "dataset_path": "EleutherAI/hendrycks_math",
+      "dataset_name": "geometry",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "training_split": "train",
+      "test_split": "test",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc: dict) -> dict:\n        out_doc = {\n            \"problem\": doc[\"problem\"],\n            \"solution\": doc[\"solution\"],\n            \"answer\": remove_boxed(last_boxed_only_string(doc[\"solution\"])),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n",
+      "doc_to_text": "Problem: {{problem}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "process_results": "def process_results(doc: dict, results: List[str]) -> Dict[str, int]:\n    retval = 0\n    indices = [pos for pos, char in enumerate(results[0]) if char == \"$\"]\n    if len(indices) <= 1:\n        answer = results[0]\n    else:\n        answer = results[0][indices[0] + 1 : indices[-1]]\n\n    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc[\"solution\"]))):\n        retval = 1\n\n    results = {\n        \"exact_match\": retval,\n    }\n    return results\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 4,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "Problem:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "hendrycks_math_intermediate_algebra": {
+      "task": "hendrycks_math_intermediate_algebra",
+      "tag": [
+        "math_word_problems"
+      ],
+      "dataset_path": "EleutherAI/hendrycks_math",
+      "dataset_name": "intermediate_algebra",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "training_split": "train",
+      "test_split": "test",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc: dict) -> dict:\n        out_doc = {\n            \"problem\": doc[\"problem\"],\n            \"solution\": doc[\"solution\"],\n            \"answer\": remove_boxed(last_boxed_only_string(doc[\"solution\"])),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n",
+      "doc_to_text": "Problem: {{problem}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "process_results": "def process_results(doc: dict, results: List[str]) -> Dict[str, int]:\n    retval = 0\n    indices = [pos for pos, char in enumerate(results[0]) if char == \"$\"]\n    if len(indices) <= 1:\n        answer = results[0]\n    else:\n        answer = results[0][indices[0] + 1 : indices[-1]]\n\n    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc[\"solution\"]))):\n        retval = 1\n\n    results = {\n        \"exact_match\": retval,\n    }\n    return results\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 4,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "Problem:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "hendrycks_math_num_theory": {
+      "task": "hendrycks_math_num_theory",
+      "tag": [
+        "math_word_problems"
+      ],
+      "dataset_path": "EleutherAI/hendrycks_math",
+      "dataset_name": "number_theory",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "training_split": "train",
+      "test_split": "test",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc: dict) -> dict:\n        out_doc = {\n            \"problem\": doc[\"problem\"],\n            \"solution\": doc[\"solution\"],\n            \"answer\": remove_boxed(last_boxed_only_string(doc[\"solution\"])),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n",
+      "doc_to_text": "Problem: {{problem}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "process_results": "def process_results(doc: dict, results: List[str]) -> Dict[str, int]:\n    retval = 0\n    indices = [pos for pos, char in enumerate(results[0]) if char == \"$\"]\n    if len(indices) <= 1:\n        answer = results[0]\n    else:\n        answer = results[0][indices[0] + 1 : indices[-1]]\n\n    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc[\"solution\"]))):\n        retval = 1\n\n    results = {\n        \"exact_match\": retval,\n    }\n    return results\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 4,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "Problem:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "hendrycks_math_prealgebra": {
+      "task": "hendrycks_math_prealgebra",
+      "tag": [
+        "math_word_problems"
+      ],
+      "dataset_path": "EleutherAI/hendrycks_math",
+      "dataset_name": "prealgebra",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "training_split": "train",
+      "test_split": "test",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc: dict) -> dict:\n        out_doc = {\n            \"problem\": doc[\"problem\"],\n            \"solution\": doc[\"solution\"],\n            \"answer\": remove_boxed(last_boxed_only_string(doc[\"solution\"])),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n",
+      "doc_to_text": "Problem: {{problem}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "process_results": "def process_results(doc: dict, results: List[str]) -> Dict[str, int]:\n    retval = 0\n    indices = [pos for pos, char in enumerate(results[0]) if char == \"$\"]\n    if len(indices) <= 1:\n        answer = results[0]\n    else:\n        answer = results[0][indices[0] + 1 : indices[-1]]\n\n    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc[\"solution\"]))):\n        retval = 1\n\n    results = {\n        \"exact_match\": retval,\n    }\n    return results\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 4,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "Problem:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "hendrycks_math_precalc": {
+      "task": "hendrycks_math_precalc",
+      "tag": [
+        "math_word_problems"
+      ],
+      "dataset_path": "EleutherAI/hendrycks_math",
+      "dataset_name": "precalculus",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "training_split": "train",
+      "test_split": "test",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc: dict) -> dict:\n        out_doc = {\n            \"problem\": doc[\"problem\"],\n            \"solution\": doc[\"solution\"],\n            \"answer\": remove_boxed(last_boxed_only_string(doc[\"solution\"])),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n",
+      "doc_to_text": "Problem: {{problem}}\nAnswer:",
+      "doc_to_target": "{{answer}}",
+      "process_results": "def process_results(doc: dict, results: List[str]) -> Dict[str, int]:\n    retval = 0\n    indices = [pos for pos, char in enumerate(results[0]) if char == \"$\"]\n    if len(indices) <= 1:\n        answer = results[0]\n    else:\n        answer = results[0][indices[0] + 1 : indices[-1]]\n\n    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc[\"solution\"]))):\n        retval = 1\n\n    results = {\n        \"exact_match\": retval,\n    }\n    return results\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 4,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "Problem:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    }
+  },
+  "versions": {
+    "hendrycks_math": 1.0,
+    "hendrycks_math_algebra": 1.0,
+    "hendrycks_math_counting_and_prob": 1.0,
+    "hendrycks_math_geometry": 1.0,
+    "hendrycks_math_intermediate_algebra": 1.0,
+    "hendrycks_math_num_theory": 1.0,
+    "hendrycks_math_prealgebra": 1.0,
+    "hendrycks_math_precalc": 1.0
+  },
+  "n-shot": {
+    "hendrycks_math_algebra": 4,
+    "hendrycks_math_counting_and_prob": 4,
+    "hendrycks_math_geometry": 4,
+    "hendrycks_math_intermediate_algebra": 4,
+    "hendrycks_math_num_theory": 4,
+    "hendrycks_math_prealgebra": 4,
+    "hendrycks_math_precalc": 4
+  },
+  "higher_is_better": {
+    "hendrycks_math": {
+      "exact_match": true
+    },
+    "hendrycks_math_algebra": {
+      "exact_match": true
+    },
+    "hendrycks_math_counting_and_prob": {
+      "exact_match": true
+    },
+    "hendrycks_math_geometry": {
+      "exact_match": true
+    },
+    "hendrycks_math_intermediate_algebra": {
+      "exact_match": true
+    },
+    "hendrycks_math_num_theory": {
+      "exact_match": true
+    },
+    "hendrycks_math_prealgebra": {
+      "exact_match": true
+    },
+    "hendrycks_math_precalc": {
+      "exact_match": true
+    }
+  },
+  "n-samples": {
+    "hendrycks_math_algebra": {
+      "original": 1187,
+      "effective": 1187
+    },
+    "hendrycks_math_counting_and_prob": {
+      "original": 474,
+      "effective": 474
+    },
+    "hendrycks_math_geometry": {
+      "original": 479,
+      "effective": 479
+    },
+    "hendrycks_math_intermediate_algebra": {
+      "original": 903,
+      "effective": 903
+    },
+    "hendrycks_math_num_theory": {
+      "original": 540,
+      "effective": 540
+    },
+    "hendrycks_math_prealgebra": {
+      "original": 871,
+      "effective": 871
+    },
+    "hendrycks_math_precalc": {
+      "original": 546,
+      "effective": 546
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "parallelize=True,pretrained=allenai/OLMo-2-1124-7B-Instruct,dtype=bfloat16,",
+    "model_num_parameters": 7298617344,
+    "model_dtype": "torch.bfloat16",
+    "model_revision": "main",
+    "model_sha": "b76b2b179aaea5d8863f9fa756f38067f8fb508f",
+    "batch_size": "16",
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "3e1609b",
+  "date": 1733915636.4640791,
+  "pretty_env_info": "PyTorch version: 2.5.1+cu124\nIs debug build: False\nCUDA used to build PyTorch: 12.4\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 20.04.4 LTS (x86_64)\nGCC version: Could not collect\nClang version: Could not collect\nCMake version: Could not collect\nLibc version: glibc-2.31\n\nPython version: 3.10.16 (main, Dec  6 2024, 19:59:16) [Clang 18.1.8 ] (64-bit runtime)\nPython platform: Linux-5.4.0-190-generic-x86_64-with-glibc2.31\nIs CUDA available: True\nCUDA runtime version: Could not collect\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration: \nGPU 0: NVIDIA RTX 6000 Ada Generation\nGPU 1: NVIDIA RTX 6000 Ada Generation\n\nNvidia driver version: 550.54.14\ncuDNN version: Could not collect\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                       x86_64\nCPU op-mode(s):                     32-bit, 64-bit\nByte Order:                         Little Endian\nAddress sizes:                      48 bits physical, 48 bits virtual\nCPU(s):                             64\nOn-line CPU(s) list:                0-63\nThread(s) per core:                 1\nCore(s) per socket:                 32\nSocket(s):                          2\nNUMA node(s):                       16\nVendor ID:                          AuthenticAMD\nCPU family:                         25\nModel:                              1\nModel name:                         AMD EPYC 7543 32-Core Processor\nStepping:                           1\nFrequency boost:                    enabled\nCPU MHz:                            1499.656\nCPU max MHz:                        2800.0000\nCPU min MHz:                        1500.0000\nBogoMIPS:                           5600.23\nVirtualization:                     AMD-V\nL1d cache:                          2 MiB\nL1i cache:                          2 MiB\nL2 cache:                           32 MiB\nL3 cache:                           512 MiB\nNUMA node0 CPU(s):                  0-3\nNUMA node1 CPU(s):                  4-7\nNUMA node2 CPU(s):                  8-11\nNUMA node3 CPU(s):                  12-15\nNUMA node4 CPU(s):                  16-19\nNUMA node5 CPU(s):                  20-23\nNUMA node6 CPU(s):                  24-27\nNUMA node7 CPU(s):                  28-31\nNUMA node8 CPU(s):                  32-35\nNUMA node9 CPU(s):                  36-39\nNUMA node10 CPU(s):                 40-43\nNUMA node11 CPU(s):                 44-47\nNUMA node12 CPU(s):                 48-51\nNUMA node13 CPU(s):                 52-55\nNUMA node14 CPU(s):                 56-59\nNUMA node15 CPU(s):                 60-63\nVulnerability Gather data sampling: Not affected\nVulnerability Itlb multihit:        Not affected\nVulnerability L1tf:                 Not affected\nVulnerability Mds:                  Not affected\nVulnerability Meltdown:             Not affected\nVulnerability Mmio stale data:      Not affected\nVulnerability Retbleed:             Not affected\nVulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp\nVulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:           Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP disabled; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                Not affected\nVulnerability Tsx async abort:      Not affected\nFlags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 pcid sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 invpcid_single hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 invpcid cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold v_vmsave_vmload vgif umip pku ospke vaes vpclmulqdq rdpid overflow_recov succor smca\n\nVersions of relevant libraries:\n[pip3] numpy==2.0.2\n[pip3] torch==2.5.1\n[pip3] triton==3.1.0\n[conda] numpy                     2.1.3                    pypi_0    pypi\n[conda] torch                     2.5.1                    pypi_0    pypi\n[conda] triton                    3.1.0                    pypi_0    pypi",
+  "transformers_version": "4.47.0",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<|pad|>",
+    "100277"
+  ],
+  "tokenizer_eos_token": [
+    "<|endoftext|>",
+    "100257"
+  ],
+  "tokenizer_bos_token": [
+    "<|endoftext|>",
+    "100257"
+  ],
+  "eot_token_id": 100257,
+  "max_length": 4096,
+  "task_hashes": {},
+  "model_source": "hf",
+  "model_name": "allenai/OLMo-2-1124-7B-Instruct",
+  "model_name_sanitized": "allenai__OLMo-2-1124-7B-Instruct",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 11065286.544926284,
+  "end_time": 11067001.67359202,
+  "total_evaluation_time_seconds": "1715.128665735945"
+}

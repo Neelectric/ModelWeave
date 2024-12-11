@@ -87,4 +87,4 @@ with open('performance_results.csv', mode='a', newline='') as file:
         # delete folder under "OLMo_2_cache/models--allenai-OLMo-2-1124-7B"
         shutil.rmtree(f"{cache_dir}/models--{model_name.replace('/', '-')}-{model_revision}")
 
-# lm_eval --model hf --model_args parallelize=True,pretrained=sfttrainer_outputdir/,dtype=bfloat16 --tasks hendrycks_math --batch_size 16 --output_path results
+# lm_eval --model hf --model_args parallelize=True,pretrained=sfttrainer_outputdir/,dtype=bfloat16, --tasks hendrycks_math --batch_size 16 --output_path results --num_fewshot 4
