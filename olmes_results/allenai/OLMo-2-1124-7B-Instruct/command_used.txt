@@ -1,0 +1,1 @@
+olmes --model allenai/OLMo-2-1124-7B-Instruct --task minerva_math::olmes --output-dir olmes_output --batch-size 2
