@@ -2,8 +2,9 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 from datasets import load_dataset
 import matplotlib.pyplot as plt
-import imageio
+import imageio.v2 as imageio
 import os
+from tqdm import tqdm
 
 ### LOAD MODEL, TOKENIZER, DATASET
 model_id = "allenai/OLMo-2-1124-7B-Instruct"
@@ -17,11 +18,13 @@ model = AutoModelForCausalLM.from_pretrained(
 dataset = load_dataset("lighteval/MATH", trust_remote_code=True)["test"]
 output_dir = "heatmaps"
 os.makedirs(output_dir, exist_ok=True)
-num_instances = 10
+num_instances = 5
+global_min = float('inf')
+global_max = float('-inf')
 
 cross_dataset_means = []
 ### PREPARE AND TOKENIZE FIRST PROMPT
-for instance_idx in range(num_instances):
+for instance_idx in tqdm(range(num_instances)):
     instance = dataset[instance_idx]
     problem = instance["problem"]
     solution = instance["solution"]
@@ -57,12 +60,12 @@ for instance_idx in range(num_instances):
     logits = outputs.logits[:, :-1, :].contiguous()
     loss_fn = torch.nn.CrossEntropyLoss()
     loss = loss_fn(outputs.logits.view(-1, model.config.vocab_size), target.view(-1))
-    print(f"Loss: {loss.item()}")
+    tqdm.write(f"Loss: {loss.item()}")
     loss.backward()
 
     ### CALCULATE MEAN GRADIENT PER LAYER
-    all_means = []
-    print("WE ARE IGNORING FUCKING OLMO RMSNORM FOR EVERY ATTN PARAM")
+    instance_means = []
+    tqdm.write("WE ARE IGNORING FUCKING OLMO RMSNORM FOR EVERY ATTN PARAM")
     for layer_id, layer in enumerate(model.model.layers):
         layer_means = []
         # first we grab gradients from the 4 self_attn matrices
@@ -80,11 +83,17 @@ for instance_idx in range(num_instances):
             grad = matrix.weight.grad
             mean_grad = grad.mean()
             layer_means.append(mean_grad)
-        all_means.append(layer_means)
+        instance_means.append(layer_means)
 
     # Convert the list of lists to a tensor
-    all_means_tensor = torch.tensor(all_means)
-    cross_dataset_means.append(all_means_tensor)
+    instance_means_tensor = torch.tensor(instance_means)
+    cross_dataset_means.append(instance_means_tensor)
+
+    # Update global min and max values
+    global_min = min(global_min, instance_means_tensor.min().item())
+    global_max = max(global_max, instance_means_tensor.max().item())
+
+
 
 # print(len(cross_dataset_means))
 # cross_dataset_means_tensor = torch.stack(cross_dataset_means)
@@ -94,7 +103,7 @@ for instance_idx in range(num_instances):
     # Plot the heatmap
     plt.figure(figsize=(12, 8))
     plt.title(f"Mean Gradients Heatmap - Instance {instance_idx + 1}")
-    plt.imshow(all_means_tensor, cmap='viridis', aspect='auto') # change this to averaged_dataset_means
+    plt.imshow(instance_means_tensor, cmap='viridis', aspect='auto', vmin=global_min, vmax=global_max)
     plt.colorbar(label='Mean Gradient')
     plt.xlabel("Attention and MLP Matrices")
     plt.ylabel("Layers")
@@ -111,7 +120,7 @@ for instance_idx in range(num_instances):
     image_path = os.path.join(output_dir, f"heatmap_{instance_idx + 1}.png")
     images.append(imageio.imread(image_path))
 
-gif_path = os.path.join(output_dir, "mean_gradients_heatmaps.gif")
+gif_path = os.path.join(output_dir, f"mean_gradients_heatmaps_{num_instances}.gif")
 imageio.mimsave(gif_path, images, duration=2)
 
 print(f"GIF saved at {gif_path}")
