@@ -24,6 +24,7 @@ global_max = float('-inf')
 
 cross_dataset_means = []
 ### PREPARE AND TOKENIZE FIRST PROMPT
+print("WE ARE IGNORING FUCKING OLMO RMSNORM FOR EVERY ATTN PARAM")
 for instance_idx in tqdm(range(num_instances)):
     instance = dataset[instance_idx]
     problem = instance["problem"]
@@ -65,7 +66,6 @@ for instance_idx in tqdm(range(num_instances)):
 
     ### CALCULATE MEAN GRADIENT PER LAYER
     instance_means = []
-    tqdm.write("WE ARE IGNORING FUCKING OLMO RMSNORM FOR EVERY ATTN PARAM")
     for layer_id, layer in enumerate(model.model.layers):
         layer_means = []
         # first we grab gradients from the 4 self_attn matrices
@@ -126,7 +126,7 @@ cross_dataset_means_tensor = torch.stack(cross_dataset_means)
 averaged_dataset_means = cross_dataset_means_tensor.mean(dim=0)
 plt.figure(figsize=(12, 8))
 plt.title(f"Mean Gradients Heatmap - Average of {num_instances}")
-plt.imshow(averaged_dataset_means, cmap='viridis', aspect='auto', vmin=global_min, vmax=global_max)
+plt.imshow(averaged_dataset_means, cmap='viridis', aspect='auto')
 plt.colorbar(label='Mean Gradient')
 plt.xlabel("Attention and MLP Matrices")
 plt.ylabel("Layers")
