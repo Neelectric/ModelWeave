@@ -100,7 +100,7 @@ for instance_idx in tqdm(range(num_instances)):
 # Plot the heatmap for each instance with consistent color scale
 for instance_idx, instance_means_tensor in enumerate(cross_dataset_means):
     plt.figure(figsize=(12, 8))
-    plt.title(f"Mean Gradients Heatmap - Instance {instance_idx + 1}")
+    plt.title(f"Mean Gradients Heatmap of {model_id} on MATH - Instance {instance_idx + 1}")
     plt.imshow(instance_means_tensor, cmap='viridis', aspect='auto', vmin=global_min, vmax=global_max)
     plt.colorbar(label='Mean Gradient')
     plt.xlabel("Attention and MLP Matrices")
@@ -125,7 +125,7 @@ print(f"GIF saved at {gif_path}")
 cross_dataset_means_tensor = torch.stack(cross_dataset_means)
 averaged_dataset_means = cross_dataset_means_tensor.mean(dim=0)
 plt.figure(figsize=(12, 8))
-plt.title(f"Mean Gradients Heatmap - Average of {num_instances}")
+plt.title(f"Mean Gradients Heatmap of {model_id} on MATH  - Average of {num_instances}")
 plt.imshow(averaged_dataset_means, cmap='viridis', aspect='auto')
 plt.colorbar(label='Mean Gradient')
 plt.xlabel("Attention and MLP Matrices")
