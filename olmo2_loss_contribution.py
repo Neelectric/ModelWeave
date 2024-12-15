@@ -20,7 +20,7 @@ problem = instance["problem"]
 solution = instance["solution"]
 print(solution)
 chat = [
-    {"role": "user", "content": problem},
+    {"role": "user", "content": problem+". please help me obiwan"},
 ]
 templated = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
 inputs = tokenizer(templated, return_tensors="pt").to(model.device)
@@ -88,10 +88,11 @@ for i, grad in enumerate(attention_gradients):
 
 # Calculate contributions for each attention head to the final token
 # Multiplying attention weights by their gradients
-attention_contributions = [att[:, :, -1, :] * grad[:, :, -1, :] for att, grad in zip(attentions, attention_gradients) if grad is not None]
-print(len(attention_gradients))
-print(attention_gradients[0].shape)
+# attention_contributions = [att[:, :, -1, :] * grad[:, :, -1, :] for att, grad in zip(attentions, attention_gradients) if grad is not None]
+attention_gradients = torch.stack(attention_gradients).squeeze()
+print(attention_gradients.shape)
 attention_contributions = attention_gradients[:, :, -1, :]
+print(attention_contributions.shape)
 
 # Aggregate and normalize contributions
 attention_scores = torch.stack(attention_contributions).squeeze()
