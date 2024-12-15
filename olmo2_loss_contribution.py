@@ -96,10 +96,6 @@ for instance_idx in tqdm(range(num_instances)):
 
 
 
-# print(len(cross_dataset_means))
-# cross_dataset_means_tensor = torch.stack(cross_dataset_means)
-# averaged_dataset_means = cross_dataset_means_tensor.mean(dim=0)
-# print(averaged_dataset_means.shape)
 
 # Plot the heatmap for each instance with consistent color scale
 for instance_idx, instance_means_tensor in enumerate(cross_dataset_means):
@@ -125,3 +121,17 @@ gif_path = os.path.join(output_dir, f"mean_gradients_heatmaps_{num_instances}.gi
 imageio.mimsave(gif_path, images, duration=2)  # Increase duration to 2 seconds per frame
 
 print(f"GIF saved at {gif_path}")
+
+cross_dataset_means_tensor = torch.stack(cross_dataset_means)
+averaged_dataset_means = cross_dataset_means_tensor.mean(dim=0)
+plt.figure(figsize=(12, 8))
+plt.title(f"Mean Gradients Heatmap - Average of {num_instances}")
+plt.imshow(averaged_dataset_means, cmap='viridis', aspect='auto', vmin=global_min, vmax=global_max)
+plt.colorbar(label='Mean Gradient')
+plt.xlabel("Attention and MLP Matrices")
+plt.ylabel("Layers")
+plt.gca().invert_yaxis()  # Invert y-axis to start layers at 0 at the bottom
+plt.xticks(ticks=range(7), labels=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
+plt.yticks(ticks=range(32), labels=range(32))
+plt.savefig(os.path.join(output_dir, f"average_of_{num_instances}_heatmap_.png"))
+plt.close()
