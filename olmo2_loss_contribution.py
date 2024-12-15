@@ -2,6 +2,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 from datasets import load_dataset
 import matplotlib.pyplot as plt
+import imageio
+import os
 
 ### LOAD MODEL, TOKENIZER, DATASET
 model_id = "allenai/OLMo-2-1124-7B-Instruct"
@@ -13,11 +15,13 @@ model = AutoModelForCausalLM.from_pretrained(
     attn_implementation="eager", # need to do this because "Olmo2Model is using Olmo2SdpaAttention, but `torch.nn.functional.scaled_dot_product_attention` does not support `output_attentions=True`. Falling back to the manual attention implementation, need to specify this"
 )
 dataset = load_dataset("lighteval/MATH", trust_remote_code=True)["test"]
-# first_3 = dataset[0:3]
+output_dir = "heatmaps"
+os.makedirs(output_dir, exist_ok=True)
+num_instances = 10
 
 cross_dataset_means = []
 ### PREPARE AND TOKENIZE FIRST PROMPT
-for instance_idx in range(3):
+for instance_idx in range(num_instances):
     instance = dataset[instance_idx]
     problem = instance["problem"]
     solution = instance["solution"]
@@ -58,10 +62,10 @@ for instance_idx in range(3):
 
     ### CALCULATE MEAN GRADIENT PER LAYER
     all_means = []
+    print("WE ARE IGNORING FUCKING OLMO RMSNORM FOR EVERY ATTN PARAM")
     for layer_id, layer in enumerate(model.model.layers):
         layer_means = []
         # first we grab gradients from the 4 self_attn matrices
-        print("WE ARE IGNORING FUCKING OLMO RMSNORM FOR EVERY ATTN PARAM")
         self_attn = layer.self_attn
         self_attn_matrices = [self_attn.q_proj, self_attn.k_proj, self_attn.v_proj, self_attn.o_proj]
         for matrix in self_attn_matrices:
@@ -82,14 +86,32 @@ for instance_idx in range(3):
     all_means_tensor = torch.tensor(all_means)
     cross_dataset_means.append(all_means_tensor)
 
-# Plot the heatmap
-plt.figure(figsize=(12, 8))
-plt.title("Mean Gradients Heatmap")
-plt.imshow(all_means_tensor, cmap='viridis', aspect='auto')
-plt.colorbar(label='Mean Gradient')
-plt.xlabel("Attention and MLP Matrices")
-plt.ylabel("Layers")
-plt.gca().invert_yaxis()  # Invert y-axis to start layers at 0 at the bottom
-plt.xticks(ticks=range(7), labels=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
-plt.yticks(ticks=range(32), labels=range(32))
-plt.show()
+# print(len(cross_dataset_means))
+# cross_dataset_means_tensor = torch.stack(cross_dataset_means)
+# averaged_dataset_means = cross_dataset_means_tensor.mean(dim=0)
+# print(averaged_dataset_means.shape)
+
+    # Plot the heatmap
+    plt.figure(figsize=(12, 8))
+    plt.title(f"Mean Gradients Heatmap - Instance {instance_idx + 1}")
+    plt.imshow(all_means_tensor, cmap='viridis', aspect='auto') # change this to averaged_dataset_means
+    plt.colorbar(label='Mean Gradient')
+    plt.xlabel("Attention and MLP Matrices")
+    plt.ylabel("Layers")
+    plt.gca().invert_yaxis()  # Invert y-axis to start layers at 0 at the bottom
+    plt.xticks(ticks=range(7), labels=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
+    plt.yticks(ticks=range(32), labels=range(32))
+    # plt.show()
+    plt.savefig(os.path.join(output_dir, f"heatmap_{instance_idx + 1}.png"))
+    plt.close()
+
+# Create a GIF from the saved heatmap images
+images = []
+for instance_idx in range(num_instances):
+    image_path = os.path.join(output_dir, f"heatmap_{instance_idx + 1}.png")
+    images.append(imageio.imread(image_path))
+
+gif_path = os.path.join(output_dir, "mean_gradients_heatmaps.gif")
+imageio.mimsave(gif_path, images, duration=2)
+
+print(f"GIF saved at {gif_path}")
