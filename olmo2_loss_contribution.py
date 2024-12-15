@@ -13,97 +13,83 @@ model = AutoModelForCausalLM.from_pretrained(
     attn_implementation="eager", # need to do this because "Olmo2Model is using Olmo2SdpaAttention, but `torch.nn.functional.scaled_dot_product_attention` does not support `output_attentions=True`. Falling back to the manual attention implementation, need to specify this"
 )
 dataset = load_dataset("lighteval/MATH", trust_remote_code=True)["test"]
+# first_3 = dataset[0:3]
 
+cross_dataset_means = []
 ### PREPARE AND TOKENIZE FIRST PROMPT
-instance = dataset[0]
-problem = instance["problem"]
-solution = instance["solution"]
-print(solution)
-chat = [
-    {"role": "user", "content": problem+". please help me obiwan"},
-]
-templated = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
-inputs = tokenizer(templated, return_tensors="pt").to(model.device)
-input_ids = inputs["input_ids"]
+for instance_idx in range(3):
+    instance = dataset[instance_idx]
+    problem = instance["problem"]
+    solution = instance["solution"]
+    chat = [
+        {"role": "user", "content": problem},
+    ]
+    templated = tokenizer.apply_chat_template(
+        chat, 
+        tokenize=False, 
+        add_generation_prompt=True)
+    inputs = tokenizer(templated, return_tensors="pt").to(model.device)
+    input_ids = inputs["input_ids"]
 
-### CALL .GENERATE() AND PRINT OUTPUT
-# outputs = model.generate(
-#     input_ids,
-#     labels=input_ids,
-#     do_sample=False,
-#     max_new_tokens=1,
-#     # output_hidden_states=True,
-#     # output_attentions=True,
-#     # output_loss=True
-#     # output_scores=True,
-#     # return_dict_in_generate=True,
-# )
-# print(outputs[-1])
+    ### FORWARD PASS AND NEXT TOKEN PREDICTION
+    for param in model.parameters():
+        param.requires_grad = True
+    outputs = model(
+        **inputs,
+        labels=inputs["input_ids"],
+        return_dict_in_generate=True,
+        output_attentions=True,
+    )
+    logits=outputs.logits[0],
+    next_token_logits = outputs.logits[:, -1, :].clone().float()
+    next_token_logits = next_token_logits.to(input_ids.device)
 
-### FORWARD PASS, PRINT PREDICTION
-for param in model.parameters():
-    param.requires_grad = True
-outputs = model(
-    **inputs,
-    labels=inputs["input_ids"],
-    return_dict_in_generate=True,
-    output_attentions=True,
-)
+    next_tokens = torch.argmax(next_token_logits, dim=-1)
+    input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
+    generation = tokenizer.batch_decode(input_ids)
 
-# loss_tuple=outputs.loss,
-logits=outputs.logits[0],
-past_key_values=outputs.past_key_values
-hidden_states=outputs.hidden_states
-attentions=outputs.attentions
+    ### CALCULATE LOSS AND BACKWARD PASS
+    target = input_ids[:, 1:].contiguous()
+    logits = outputs.logits[:, :-1, :].contiguous()
+    loss_fn = torch.nn.CrossEntropyLoss()
+    loss = loss_fn(outputs.logits.view(-1, model.config.vocab_size), target.view(-1))
+    print(f"Loss: {loss.item()}")
+    loss.backward()
 
+    ### CALCULATE MEAN GRADIENT PER LAYER
+    all_means = []
+    for layer_id, layer in enumerate(model.model.layers):
+        layer_means = []
+        # first we grab gradients from the 4 self_attn matrices
+        print("WE ARE IGNORING FUCKING OLMO RMSNORM FOR EVERY ATTN PARAM")
+        self_attn = layer.self_attn
+        self_attn_matrices = [self_attn.q_proj, self_attn.k_proj, self_attn.v_proj, self_attn.o_proj]
+        for matrix in self_attn_matrices:
+            grad = matrix.weight.grad
+            mean_grad = grad.mean()
+            layer_means.append(mean_grad)
+        
+        # now try the same for 3 mlp matrices
+        mlp = layer.mlp
+        mlp_matrices = [mlp.gate_proj, mlp.up_proj, mlp.down_proj]
+        for matrix in mlp_matrices:
+            grad = matrix.weight.grad
+            mean_grad = grad.mean()
+            layer_means.append(mean_grad)
+        all_means.append(layer_means)
 
-next_token_logits = outputs.logits[:, -1, :].clone().float()
-next_token_logits = next_token_logits.to(input_ids.device)
+    # Convert the list of lists to a tensor
+    all_means_tensor = torch.tensor(all_means)
+    cross_dataset_means.append(all_means_tensor)
 
-next_tokens = torch.argmax(next_token_logits, dim=-1)
-print(next_tokens)
-input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
-
-generation = tokenizer.batch_decode(input_ids)
-print(generation)
-
-# loss = loss_tuple[0]
-### BACKWARD PASS
-for att in attentions:
-    att.requires_grad_(True)
-target = input_ids[:, 1:].contiguous()
-logits = outputs.logits[:, :-1, :].contiguous()
-
-loss_fn = torch.nn.CrossEntropyLoss()
-loss = loss_fn(outputs.logits.view(-1, model.config.vocab_size), target.view(-1))
-loss.backward()
-
-# Extract attention gradients
-attention_gradients = [att.grad for att in attentions]
-
-# Check if gradients are None
-for i, grad in enumerate(attention_gradients):
-    if grad is None:
-        print(f"Gradients for attention layer {i} are None")
-
-# Calculate contributions for each attention head to the final token
-# Multiplying attention weights by their gradients
-# attention_contributions = [att[:, :, -1, :] * grad[:, :, -1, :] for att, grad in zip(attentions, attention_gradients) if grad is not None]
-attention_gradients = torch.stack(attention_gradients).squeeze()
-print(attention_gradients.shape)
-attention_contributions = attention_gradients[:, :, -1, :]
-print(attention_contributions.shape)
-
-# Aggregate and normalize contributions
-attention_scores = torch.stack(attention_contributions).squeeze()
-attention_scores = attention_scores[:,:,-1] # convert from [num_layers,num_heads,num_tokens] to [32,32,last_token]
-
-# Visualization
-plt.figure(figsize=(12, 6))
-plt.title("Attention Head Contributions to Final Token")
-plt.imshow(attention_scores.cpu().detach().numpy(), cmap='viridis', aspect='auto')
-plt.colorbar()
-plt.xlabel("Attention Heads")
+# Plot the heatmap
+plt.figure(figsize=(12, 8))
+plt.title("Mean Gradients Heatmap")
+plt.imshow(all_means_tensor, cmap='viridis', aspect='auto')
+plt.colorbar(label='Mean Gradient')
+plt.xlabel("Attention and MLP Matrices")
 plt.ylabel("Layers")
-plt.gca().invert_yaxis() 
+plt.gca().invert_yaxis()  # Invert y-axis to start layers at 0 at the bottom
+plt.xticks(ticks=range(7), labels=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
+plt.yticks(ticks=range(32), labels=range(32))
 plt.show()
