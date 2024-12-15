@@ -18,7 +18,7 @@ model = AutoModelForCausalLM.from_pretrained(
 dataset = load_dataset("lighteval/MATH", trust_remote_code=True)["test"]
 output_dir = "heatmaps"
 os.makedirs(output_dir, exist_ok=True)
-num_instances = 5
+num_instances = 100
 global_min = float('inf')
 global_max = float('-inf')
 
@@ -84,6 +84,7 @@ for instance_idx in tqdm(range(num_instances)):
             mean_grad = grad.mean()
             layer_means.append(mean_grad)
         instance_means.append(layer_means)
+    model.zero_grad()
 
     # Convert the list of lists to a tensor
     instance_means_tensor = torch.tensor(instance_means)
@@ -100,7 +101,8 @@ for instance_idx in tqdm(range(num_instances)):
 # averaged_dataset_means = cross_dataset_means_tensor.mean(dim=0)
 # print(averaged_dataset_means.shape)
 
-    # Plot the heatmap
+# Plot the heatmap for each instance with consistent color scale
+for instance_idx, instance_means_tensor in enumerate(cross_dataset_means):
     plt.figure(figsize=(12, 8))
     plt.title(f"Mean Gradients Heatmap - Instance {instance_idx + 1}")
     plt.imshow(instance_means_tensor, cmap='viridis', aspect='auto', vmin=global_min, vmax=global_max)
@@ -110,7 +112,6 @@ for instance_idx in tqdm(range(num_instances)):
     plt.gca().invert_yaxis()  # Invert y-axis to start layers at 0 at the bottom
     plt.xticks(ticks=range(7), labels=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
     plt.yticks(ticks=range(32), labels=range(32))
-    # plt.show()
     plt.savefig(os.path.join(output_dir, f"heatmap_{instance_idx + 1}.png"))
     plt.close()
 
@@ -121,6 +122,6 @@ for instance_idx in range(num_instances):
     images.append(imageio.imread(image_path))
 
 gif_path = os.path.join(output_dir, f"mean_gradients_heatmaps_{num_instances}.gif")
-imageio.mimsave(gif_path, images, duration=2)
+imageio.mimsave(gif_path, images, duration=2)  # Increase duration to 2 seconds per frame
 
 print(f"GIF saved at {gif_path}")
