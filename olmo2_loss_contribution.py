@@ -17,8 +17,9 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 dataset = load_dataset("lighteval/MATH", trust_remote_code=True)["test"]
 output_dir = "heatmaps"
+raw_heatmap_dir = os.join(output_dir, "raw_heatmaps")
 os.makedirs(output_dir, exist_ok=True)
-num_instances = 100
+num_instances = 250
 global_min = float('inf')
 global_max = float('-inf')
 
@@ -125,7 +126,6 @@ for instance_idx in tqdm(range(num_instances)):
 
 
 
-
 # Plot the heatmap for each instance with consistent color scale
 for instance_idx, instance_means_tensor in enumerate(cross_dataset_means):
     plt.figure(figsize=(12, 8))
@@ -137,7 +137,7 @@ for instance_idx, instance_means_tensor in enumerate(cross_dataset_means):
     plt.gca().invert_yaxis()  # Invert y-axis to start layers at 0 at the bottom
     plt.xticks(ticks=range(7), labels=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'])
     plt.yticks(ticks=range(32), labels=range(32))
-    plt.savefig(os.path.join(output_dir, f"heatmap_{instance_idx + 1}.png"))
+    plt.savefig(os.path.join(raw_heatmap_dir, f"heatmap_{instance_idx + 1}.png"))
     plt.close()
 
 # Create a GIF from the saved heatmap images
