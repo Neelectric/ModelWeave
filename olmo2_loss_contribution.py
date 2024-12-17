@@ -17,16 +17,17 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 dataset = load_dataset("lighteval/MATH", trust_remote_code=True)["test"]
 output_dir = "heatmaps"
-raw_heatmap_dir = os.join(output_dir, "raw_heatmaps")
+raw_heatmap_dir = os.path.join(output_dir, "raw_heatmaps")
 os.makedirs(output_dir, exist_ok=True)
-num_instances = 250
+num_instances = len(dataset)
+# num_instances = 5
 global_min = float('inf')
 global_max = float('-inf')
 
 cross_dataset_means = []
 ### PREPARE AND TOKENIZE FIRST PROMPT
 print("WE ARE IGNORING FUCKING OLMO RMSNORM FOR EVERY ATTN PARAM")
-for instance_idx in tqdm(range(num_instances)):
+for instance_idx in tqdm(range(num_instances), dynamic_ncols=True):
     instance = dataset[instance_idx]
     problem = instance["problem"]
     solution = instance["solution"]
@@ -114,7 +115,7 @@ for instance_idx, instance_means_tensor in enumerate(cross_dataset_means):
 # Create a GIF from the saved heatmap images
 images = []
 for instance_idx in range(num_instances):
-    image_path = os.path.join(output_dir, f"heatmap_{instance_idx + 1}.png")
+    image_path = os.path.join(raw_heatmap_dir, f"heatmap_{instance_idx + 1}.png")
     images.append(imageio.imread(image_path))
 
 gif_path = os.path.join(output_dir, f"mean_gradients_heatmaps_{num_instances}.gif")
