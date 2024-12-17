@@ -85,6 +85,35 @@ for instance_idx in tqdm(range(num_instances)):
             layer_means.append(mean_grad)
         instance_means.append(layer_means)
     model.zero_grad()
+    # min, max and curtosis!
+    # could be interesting if gradient is skewed --> only updating certain neurons and others less
+    # plot matrices individually
+    # full ft is never low rank
+    # can we do lora? plot delta
+    # merge model wtih adapter then plot before and after
+    # maybe ideally gradient should update sparse set of neurons instead of everything
+    # maybe a loss function that enforces sparsity in weight updates?
+    # maybe we don't need sparsity but skewedness is enough
+    # get lora, then take delta W adn it may be more sparse and low rank than full finetuning
+
+
+    # separate math loss skewedness from correct/iincorrect predictions
+    # only do gradients if they exceed a certain threshold!
+    # research methods of skewedness, curtosis and Pearson mode skewness and Pearson median skewness
+    # check out skewedness of residual stream!
+    # gradients similar to saliency maps!
+    # this can be a preliminary study for some actual hardened mechinterp research
+
+
+    # take top 100 neurons where gradient is highest
+    # then knock them out
+    # what is impact? does accuracy go up or down
+    # if it goes up, then gradient was pinpointing most incorrect neurons
+    # feels like pruning? gradient based pruning?
+    # borrow ideas from lottery ticket hypothesis work?
+    # 3 datasets: math, entity tracking and natural lagnauge
+    # neurons that light up on entity tracking should 
+    # revisit monosemanticity and SAEs!
 
     # Convert the list of lists to a tensor
     instance_means_tensor = torch.tensor(instance_means)
