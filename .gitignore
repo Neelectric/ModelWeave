@@ -23,3 +23,6 @@ olmes_results/olmes/allenai/
 olmes_results/olmes/
 
 heatmaps/raw_heatmaps/
+commandr7b_loss/mean/mean_heatmaps/raw_heatmaps
+commandr7b_loss/max/max_heatmaps/raw_heatmaps
+commandr7b_loss/min/min_heatmaps/raw_heatmaps
